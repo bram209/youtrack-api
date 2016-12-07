@@ -7,16 +7,19 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.mime.HttpMultipartMode
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import youtrack.api.projects.Project
+import kotlin.reflect.KClass
 
 /**
  * Created by bram on 12/7/16.
  */
-class Youtrack(val baseUrl: String) {
+class Youtrack(baseUrl: String) {
+    private val restUrl: String = baseUrl + "/rest"
+    private val loginUrl = restUrl + "/user/login"
 
+    private val client = HttpClientBuilder.create().build()
     private var authenticationCookie: String? = null
 
     fun authenticate(username: String, password: String) {
-        val loginUrl = baseUrl + "/rest/user/login"
         val client = HttpClientBuilder.create().build()
 
         val entityBuilder = MultipartEntityBuilder.create()
@@ -38,19 +41,23 @@ class Youtrack(val baseUrl: String) {
     }
 
     fun projects(): Array<Project> {
-        val loginUrl = baseUrl + "/rest/project/all"
-        val client = HttpClientBuilder.create().build()
+        return get<Array<Project>>("/project/all") ?: return arrayOf()
+    }
 
-        val get = HttpGet(loginUrl)
-        get.addHeader("Cookie", authenticationCookie)
-        get.addHeader("Accept", "application/json")
-        val response = client.execute(get)
+    private inline fun <reified T: Any> get(command: String): T? {
+        val commandUrl = restUrl + command
+        val httpGet = HttpGet(commandUrl)
+        httpGet.addHeader("Cookie", authenticationCookie)
+        httpGet.addHeader("Accept", "application/json")
+        val response = client.execute(httpGet)
         if (response.statusLine.statusCode == 200) { //OK
             val mapper = jacksonObjectMapper()
-            val projectList = mapper.readValue(response.entity.content, Array<Project>::class.java) ?: return arrayOf()
+            val projectList: T = mapper.readValue(response.entity.content, T::class.java)
             return projectList
-        } else {
-            throw RuntimeException("Invalid response: $response")
         }
+
+        return null
     }
+
+
 }
