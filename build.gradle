@@ -1,0 +1,26 @@
+group 'com.github.bram209.youtrack'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.0.5-2'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.4"
+}
