@@ -20,8 +20,7 @@ import youtrack.api.PropertyBasedPolymorphicDeserializer
 @JsonSubTypes(
         JsonSubTypes.Type(value = AttachmentField::class, name = "attachments")
 )
-open class AbstractField<out T>(val name: String, val value: T) {
-}
+open class AbstractField<out T>(val name: String, val value: T)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SingleValueField(value: Any?) : AbstractField<Any?>("Test", value)

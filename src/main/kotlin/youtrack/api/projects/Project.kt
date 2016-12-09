@@ -24,6 +24,4 @@ class Project(@JacksonInject val context: MethodContext,
               val assigneesUrl: String,
               val subsystemsUrl: String,
               val buildsUrl: String,
-              val versionsUrl: String) {
-
-}
+              val versionsUrl: String)
