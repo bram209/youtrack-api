@@ -22,4 +22,8 @@ class IssueManagment(youtrack: Youtrack) : Managment(youtrack) {
     fun getCommentsForIssue(issueId: String): Array<Comment> {
         return youtrack.get("issue/comments/$issueId", true) ?: return arrayOf()
     }
+
+    fun  getAttachmentsForIssue(issueId: String): Array<Attachment> {
+        throw NotImplementedError()
+    }
 }

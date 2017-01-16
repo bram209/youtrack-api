@@ -26,6 +26,7 @@ class Issue(@JacksonInject val context: MethodContext,
             val jiraId: String?,
             @JsonProperty("projectShortName") val projectName: String,
             val numberInProject: Int,
+            @JsonProperty("type") private val _type: String?,
             val summary: String,
             val description: String?,
             val created: Long,
@@ -36,9 +37,9 @@ class Issue(@JacksonInject val context: MethodContext,
             val commentsCount: Int,
             val votes: Int,
             val permittedGroup: String?,
-            @JsonProperty("field") private val fields: Array<AbstractField<*>>,
+            @JsonProperty("field") val fields: Array<AbstractField<*>>,
             @JsonProperty("links") private val links: Array<Link>,
-            @JsonProperty("attachments") private var attachments: Array<Attachment>,
+            @JsonProperty("attachments") private var _attachments: Array<Attachment>?,
             @JsonProperty("comment") private var _comments: Array<Comment>?) {
 
     val fieldMap: Map<String, Any>
@@ -51,6 +52,15 @@ class Issue(@JacksonInject val context: MethodContext,
             }
         }
     }
+
+    val type: String
+        get() {
+            if (_type != null) {
+                return _type
+            } else {
+                return getField("Type") as String
+            }
+        }
 
     fun getField(fieldName: String): Any? {
         return fieldMap[fieldName]
@@ -65,7 +75,11 @@ class Issue(@JacksonInject val context: MethodContext,
     }
 
     fun attachments(): Array<Attachment> {
-        return attachments
+        if (_attachments == null) {
+            _attachments = context.issueManagment.getAttachmentsForIssue(id)
+        }
+
+        return _attachments!!
     }
 
     fun links(): Array<Link> {
