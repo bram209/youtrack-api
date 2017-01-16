@@ -14,7 +14,6 @@ class Link(val target: String, val type: String, val role: String) {
     object Deserializer : JsonDeserializer<Link>() {
         override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): Link {
             val root = p!!.codec.readTree<ObjectNode>(p)
-            println(root)
             if (root.has("typeInward")) {
                 return Link(root.get("target").asText(),
                         root.get("typeName").asText(),

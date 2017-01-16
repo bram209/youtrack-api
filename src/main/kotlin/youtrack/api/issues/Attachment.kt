@@ -5,14 +5,39 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.util.EntityUtils
+import java.io.File
+import java.io.FileOutputStream
+
 
 /**
  * Created by bram on 12/9/16.
  */
 
 @JsonDeserialize(using = Attachment.Deserializer::class)
-class Attachment(val id: String, val url: String, name: String,
+class Attachment(val id: String, val url: String, val name: String,
                  val authorLogin: String?, val group: String?, val created: Long?) {
+
+    fun download() {
+        val outputFile = File(name)
+        downloadToFile(outputFile)
+    }
+
+    fun downloadToDir(outputDir: File) {
+        val outputFile = File(outputDir, name)
+        downloadToFile(outputFile)
+    }
+
+    fun downloadToFile(outputFile: File) {
+        val client = HttpClientBuilder.create().build()
+        val httpGet = HttpGet(url + "/")
+        val response = client.execute(httpGet)
+        println(response.entity.contentType)
+        println(EntityUtils.toString(response.entity))
+        FileOutputStream(outputFile).use({ outstream -> response.entity.writeTo(outstream) })
+    }
 
     object Deserializer : JsonDeserializer<Attachment>() {
         override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): Attachment {

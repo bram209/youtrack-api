@@ -1,24 +1,11 @@
 package youtrack.api
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.Version
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
-import com.fasterxml.jackson.databind.deser.ResolvableDeserializer
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.mime.HttpMultipartMode
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.impl.client.HttpClientBuilder
-import java.lang.reflect.ParameterizedType
-import com.sun.javafx.fxml.BeanAdapter.getGenericType
-import youtrack.api.issues.Issue
+import org.apache.http.util.EntityUtils
 
 
 /**
@@ -33,7 +20,7 @@ class Youtrack(baseUrl: String) {
 
     val context = MethodContext(this)
 
-    fun authenticate(username: String, password: String) {
+    fun authenticate(username: String, password: String) : Boolean {
         val entityBuilder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                 .addTextBody("login", username).addTextBody("password", password)
@@ -46,8 +33,13 @@ class Youtrack(baseUrl: String) {
         if (response.statusLine.statusCode == 200) { //OK
             authenticationCookie = response.getHeaders("Set-Cookie")[0].value
             println(authenticationCookie)
+            return true
         } else {
-            throw RuntimeException("Invalid response: $response")
+            if (response.statusLine.statusCode == 403) {
+                return false
+            } else {
+                throw RuntimeException("Invalid response: $response")
+            }
         }
     }
 
@@ -59,21 +51,21 @@ class Youtrack(baseUrl: String) {
         httpGet.addHeader("Accept", "application/json")
         val response = client.execute(httpGet)
         if (response.statusLine.statusCode == 200) { //OK
-//            println(EntityUtils.toString(response.entity))
-            val mapper = jacksonObjectMapper()
-            val inject = InjectableValues.Std().addValue(MethodContext::class.java, context)
-            mapper.injectableValues = inject
+            println(EntityUtils.toString(response.entity))
+//            val mapper = jacksonObjectMapper()
+//            val inject = InjectableValues.Std().addValue(MethodContext::class.java, context)
+//            mapper.injectableValues = inject
+//
+//            val deserializerModule = SimpleModule()
+//            deserializerModule.addDeserializer(Issue::class.java, Issue.Deserializer)
+//            mapper.registerModule(deserializerModule)
+//            if (wrapped) {
+//                val tree = mapper.readTree(response.entity.content)
+//                return mapper.treeToValue(tree.fields().next().value)
+//            }
 
-            val deserializerModule = SimpleModule()
-            deserializerModule.addDeserializer(Issue::class.java, Issue.Deserializer)
-            mapper.registerModule(deserializerModule)
-            if (wrapped) {
-                val tree = mapper.readTree(response.entity.content)
-                return mapper.treeToValue(tree.fields().next().value)
-            }
-
-            val projectList: T = mapper.readValue(response.entity.content, T::class.java)
-            return projectList
+//            val projectList: T = mapper.readValue(response.entity.content, T::class.java)
+//            return projectList
         }
 
         return null
