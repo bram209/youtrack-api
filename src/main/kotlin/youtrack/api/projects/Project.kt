@@ -18,7 +18,7 @@ class ProjectNonVerbose(@JacksonInject val context: MethodContext, val name: Str
 class Project(@JacksonInject val context: MethodContext,
               val id: String,
               val name: String,
-              val description: String,
+              val description: String?,
               val lead: String,
               val archived: Boolean,
               val startingNumber: Int,
