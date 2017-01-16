@@ -1,11 +1,15 @@
 package youtrack.api
 
+import com.fasterxml.jackson.databind.InjectableValues
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.mime.HttpMultipartMode
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
+import youtrack.api.issues.Issue
 
 
 /**
@@ -51,21 +55,20 @@ class Youtrack(baseUrl: String) {
         httpGet.addHeader("Accept", "application/json")
         val response = client.execute(httpGet)
         if (response.statusLine.statusCode == 200) { //OK
-            println(EntityUtils.toString(response.entity))
-//            val mapper = jacksonObjectMapper()
-//            val inject = InjectableValues.Std().addValue(MethodContext::class.java, context)
-//            mapper.injectableValues = inject
-//
-//            val deserializerModule = SimpleModule()
-//            deserializerModule.addDeserializer(Issue::class.java, Issue.Deserializer)
-//            mapper.registerModule(deserializerModule)
-//            if (wrapped) {
-//                val tree = mapper.readTree(response.entity.content)
-//                return mapper.treeToValue(tree.fields().next().value)
-//            }
+            val mapper = jacksonObjectMapper()
+            val inject = InjectableValues.Std().addValue(MethodContext::class.java, context)
+            mapper.injectableValues = inject
 
-//            val projectList: T = mapper.readValue(response.entity.content, T::class.java)
-//            return projectList
+            val deserializerModule = SimpleModule()
+            deserializerModule.addDeserializer(Issue::class.java, Issue.Deserializer)
+            mapper.registerModule(deserializerModule)
+            if (wrapped) {
+                val tree = mapper.readTree(response.entity.content)
+                return mapper.treeToValue(tree.fields().next().value, T::class.java)
+            }
+
+            val projectList: T = mapper.readValue(response.entity.content, T::class.java)
+            return projectList
         }
 
         return null
